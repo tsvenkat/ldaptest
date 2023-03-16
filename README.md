@@ -38,6 +38,8 @@ ssh Robert@slurmctld
 - [x] The home folder for users will be under "/shared/home"
 - [x] SLURM config file is preset with 3 partitions (charlie, tango, sierra). All use the single slurmd node
 
+**Note:** There is also a partition "victor", that is allowed only for the group "oper". User Theon is part of this group and so can submit jobs to this partition.
+
 ### Key config files
 ```
 ldapserver:
