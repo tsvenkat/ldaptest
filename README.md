@@ -22,4 +22,5 @@ ssh Robert@slurmctld
 ```
 
 > For password, refer to the file resources/openldap.sh
+
 > For ldapsearch/modify example commands, refer to resources/setup_sssd.sh
