@@ -7,12 +7,16 @@ VirtualBox
 vagrant plugin install vagrant-vbguest
 
 ## To bring up the VMs 
-`cd ldaptest
-vagrant up`
+`
+cd ldaptest
+vagrant up
+`
 
 ## To work with individual VMs
-`vagrant ssh slurmctld
+`
+vagrant ssh slurmctld
 sinfo
-ssh Robert@slurmctld`
+ssh Robert@slurmctld
+`
 
 > For password, refer to the openldap.sh file
