@@ -30,7 +30,7 @@ adduser --disabled-password --gecos "" hpcuser1
 
 # mount NFS share
 apt-get install nfs-common -y
-mkdir /shared && chmod 777 /shared
+mkdir -p /shared && chmod 777 /shared
 echo "slurmctld:/shared /shared nfs defaults 0 0" >> /etc/fstab
 
 while ! timeout 10 mount /shared; do

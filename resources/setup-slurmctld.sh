@@ -49,7 +49,7 @@ adduser --disabled-password --gecos "" hpcuser1
 
 # set up NFS share (may not work)
 apt-get install nfs-kernel-server -y
-mkdir /shared 
+mkdir -p /shared 
 mkdir -p /shared/home/
 chmod -R 777 /shared
 echo "/shared *(rw,async,no_wdelay,insecure,no_root_squash,insecure_locks,sec=sys,no_subtree_check)" >> /etc/exports
