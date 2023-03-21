@@ -202,6 +202,27 @@ EOF
 systemctl restart slapd
 systemctl status slapd
 
+# Add a new schema to support ssh public key attribute for the users
+cat << EOF > /etc/openldap/schema/openssh-lpk.schema
+dn: cn=openssh-lpk,cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: openssh-lpk
+olcAttributeTypes: ( 1.3.6.1.4.1.24552.500.1.1.1.13 NAME 'sshPublicKey'
+    DESC 'MANDATORY: OpenSSH Public key'
+    EQUALITY octetStringMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )
+olcObjectClasses: ( 1.3.6.1.4.1.24552.500.1.1.2.0 NAME 'ldapPublicKey' SUP top AUXILIARY
+    DESC 'MANDATORY: OpenSSH LPK objectclass'
+    MAY ( sshPublicKey $ uid )
+    )
+EOF
+
+ldapadd -Y EXTERNAL -H ldapi:///  -f /etc/openldap/schema/openssh-lpk.schema
+
+# Add schema for sudo capability
+cp /vagrant/resources/sudoers.schema /etc/openldap/schema/
+ldapadd -Y EXTERNAL -H ldapi:///  -f /etc/openldap/schema/sudoers.schema
+
 # Validate TLS connectivity for LDAP
 ldapsearch -x -ZZ
 openssl x509 -in /etc/openldap/cacerts/ca.cert.pem -hash
@@ -265,6 +286,7 @@ echo "objectClass: top" >> users.ldif
 echo "objectClass: person" >> users.ldif
 echo "objectClass: shadowAccount" >> users.ldif
 echo "objectClass: posixAccount" >> users.ldif
+echo "objectClass: ldapPublicKey" >> users.ldif
 echo "cn: Robert" >> users.ldif
 echo "sn: Baratheon" >> users.ldif
 echo "uid: Robert" >> users.ldif
@@ -274,12 +296,21 @@ echo "loginShell: /bin/bash" >> users.ldif
 echo "uidNumber: 10001" >> users.ldif
 echo "gidNumber: 10001" >> users.ldif
 echo "homeDirectory: /home/robert" >> users.ldif
+# generate a ssh key pair for the vagrant user and use that for Robert
+mkdir -p /vagrant/generated/sshkeys/Robert
+ssh-keygen -b 2048 -t rsa -f /vagrant/generated/sshkeys/Robert/id_rsa -q -N ""
+# Note: at some point the user Robert should use ssh-copy-id to copy their
+# public key to the target system's ~/.ssh/authorized_keys file
+
+sshPublicKey=$(cat /vagrant/generated/sshkeys/Robert/id_rsa.pub)
+echo "sshPublicKey: $sshPublicKey" >> users.ldif
 echo ""  >> users.ldif
 echo "dn: uid=Theon,ou=People,dc=KingsLanding, dc=Westeros, dc=com" >> users.ldif
 echo "objectClass: top" >> users.ldif
 echo "objectClass: person" >> users.ldif
 echo "objectClass: shadowAccount" >> users.ldif
 echo "objectClass: posixAccount" >> users.ldif
+echo "objectClass: ldapPublicKey" >> users.ldif
 echo "cn: Theon" >> users.ldif
 echo "sn: Greyjoy" >> users.ldif
 echo "uid: Theon" >> users.ldif
@@ -289,6 +320,14 @@ echo "loginShell: /bin/bash" >> users.ldif
 echo "uidNumber: 10002" >> users.ldif
 echo "gidNumber: 10002" >> users.ldif
 echo "homeDirectory: /home/theon" >> users.ldif
+# generate a ssh key pair for the vagrant user and use that for Theon
+mkdir -p /vagrant/generated/sshkeys/Theon
+ssh-keygen -b 2048 -t rsa -f /vagrant/generated/sshkeys/Theon/id_rsa -q -N ""
+# Note: at some point the user Theon should use ssh-copy-id to copy their
+# public key to the target system's ~/.ssh/authorized_keys file
+
+sshPublicKey=$(cat /vagrant/generated/sshkeys/Theon/id_rsa.pub)
+echo "sshPublicKey: $sshPublicKey" >> users.ldif
 
 ## Configure OpenLdap -- add users to groups
 echo "dn: cn=admin,ou=Group,dc=KingsLanding,dc=Westeros,dc=com" >> userGroups.ldif
@@ -300,6 +339,33 @@ echo "dn: cn=oper,ou=Group,dc=KingsLanding,dc=Westeros,dc=com" >> userGroups.ldi
 echo "changetype: modify" >> userGroups.ldif
 echo "add: memberUid" >> userGroups.ldif
 echo "memberUid: Theon" >> userGroups.ldif
+
+## Add user Robert to the sudoers group
+cat << EOF > sudoUsers.ldif
+dn: ou=sudoers,dc=KingsLanding,dc=Westeros,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: sudoers
+
+dn: cn=Robert,ou=sudoers,dc=KingsLanding,dc=Westeros,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: Robert
+sudoUser: Robert
+sudoHost: ALL
+sudoRunAsUser: ALL
+sudoCommand: ALL
+sudoOption: !authenticate
+sudoOrder: 2
+
+dn: cn=defaults,ou=sudoers,dc=KingsLanding,dc=Westeros,dc=com
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOptions go here
+sudoOption: env_keep+=SSH_AUTH_SOCK
+sudoOrder: 1
+EOF
 
 ## Apply files to openldap config
 
@@ -314,7 +380,7 @@ sudo ldapadd -x -w WinterIsComing -D "cn=ldapadm,dc=KingsLanding,dc=Westeros,dc=
 sudo ldapadd -x -w WinterIsComing -D "cn=ldapadm,dc=KingsLanding,dc=Westeros,dc=com" -f users.ldif
 sudo ldapadd -x -w WinterIsComing -D "cn=ldapadm,dc=KingsLanding,dc=Westeros,dc=com" -f groups.ldif
 sudo ldapadd -x -w WinterIsComing -D "cn=ldapadm,dc=KingsLanding,dc=Westeros,dc=com" -f userGroups.ldif
-
+sudo ldapadd -x -w WinterIsComing -D "cn=ldapadm,dc=KingsLanding,dc=Westeros,dc=com" -f sudoUsers.ldif
 
 # Edit openldap acls 
 
@@ -326,3 +392,22 @@ echo "olcAccess: {1}to attrs=userPassword by self write by anonymous auth" >> ac
 echo "olcAccess: {2}to dn.subtree="ou=People,dc=KingsLanding,dc=Westeros,dc=com" by self write by users read" >> access.ldif
 
 sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f access.ldif
+
+# To add the public key for the above users:
+# Create a file with the required changes. Example "modUsers.ldif" file below:
+# Note: the public key below is just an example. Replace it with the one you created
+# The file does 2 changes:
+# 1. It adds the "ldapPublicKey" objectClass to the user
+# 2. It adds the sshPublicKey attribute to the user and sets it with a value
+# More details: https://askubuntu.com/questions/776700/ssh-ldap-authorizedkeyscommand
+
+#dn: uid=Robert,ou=People,dc=KingsLanding,dc=Westeros,dc=com
+#changetype: modify
+#add: objectClass
+#objectClass: ldapPublicKey
+#-
+#add: sshPublicKey
+#sshPublicKey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDcVwxwQY4vgCJslVe0vc2CRZQ3YPtXyCpU/CfkFjTS/x0zkLQkQ8WRrezi4AmNbyVkk6DhFUTdYcu3y2vBn9ARXMHqWe21yV8VOu9P01zgovdTkLWogcgdEdyV++ugoXLBqjq+FrXc8KTRcxg86jfi4hlbAAqIppa7Jbmv+IPByZTdqieFkMzUM5xPgZXISYrXLii50elWdywjpTKDWkKt4zKV2V9zVz4TzLxUggL0T9SEYAt+f2edaI6tR6XL2f4UM7S70MLjcXHXRvEI1huFLtfzrY0lZqWe1bor/rMye8bBOSl2yL8wP6SKk0j2u5XiUc6vcikZmzyK5VLd7+Hv Robert@ldapserver
+
+# Next, update the user(s) with the public key attribute:
+#ldapmodify -x -H ldapi:/// -D "cn=ldapadm, dc=Kingslanding, dc=Westeros, dc=com"  -w WinterIsComing  -f modUsers.ldif

@@ -1,0 +1,6 @@
+---
+roles:
+  # Install a role from github
+  - name: geerlingguy.nfs
+    src: https://github.com/geerlingguy/ansible-role-nfs
+    version: "2.0.0"

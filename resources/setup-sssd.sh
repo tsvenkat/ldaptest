@@ -24,14 +24,16 @@ chmod -R 600 /etc/sssd/sssd.conf
 chown root:root /etc/sssd/sssd.conf
 pam-auth-update --enable mkhomedir
 
-# Update the /etc/ssh/sshd_config file to enable password authentication
-# Note: need to switch this with key based auth instead. We use password based as LDAP is setup like that
-sed -i "/^[^#]*PasswordAuthentication[[:space:]]no/c\PasswordAuthentication yes" /etc/ssh/sshd_config
-systemctl restart sshd
-
 # start the sss daemon
 systemctl enable sssd.service
 systemctl start sssd.service
+
+# Update the /etc/ssh/sshd_config file to enable password authentication
+# Note: need to switch this with key based auth instead. We use password based as LDAP is setup like that
+sed -i "/^[^#]*PasswordAuthentication[[:space:]]no/c\PasswordAuthentication yes" /etc/ssh/sshd_config
+echo 'AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys'  >> /etc/ssh/sshd_config
+echo -n 'AuthorizedKeysCommandUser nobody' >> /etc/ssh/sshd_config
+systemctl restart sshd
 
 # sssd troubleshooting tips:
 # sometimes it is helpful to run sssd in the foreground with debug logging enabled

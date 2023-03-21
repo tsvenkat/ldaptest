@@ -2,9 +2,17 @@
 A vagrant environment that runs a OpenLDAP server along with a sample of SLURM cluster VMs to use it
 
 ## Prerequisites
+### Install
 ```
+ansible - version 2.6.12 (or later)
 Vagrant - version 2.3.4
 VirtualBox - version 7.0
+```
+
+### Configure
+```
+git clone git@github.com:\tsvenkat\ldaptest
+cd ldaptest
 vagrant plugin install vagrant-vbguest
 ```
 

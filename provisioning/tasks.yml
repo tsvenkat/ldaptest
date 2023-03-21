@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: yes
+  vars:
+    ntp_package: "{{ 'ntp' if ansible_distribution == 'Ubuntu' else 'ntp' }}" 
+  tasks:
+    - name: ensure ntpd is at the latest version
+      yum: pkg={{ ntp_package }} state=latest
+      when: (ansible_distribution == "CentOS" and ansible_distribution_major_version == "7")
+      notify:
+      - restart ntp
+
+    - name: ensure ntp is at the latest version
+      apt: name={{ ntp_package }} state=latest
+      when: (ansible_distribution == "Ubuntu")
+      notify:
+      - restart ntp
+
+    - name: debug
+      debug: var=ntp_package var=inventory_hostname
+    
+    - name: Ensure the "/shared" folder exists
+      file: path="/shared" state="directory"
+
+    - name: Setup nfs server
+      include_role:
+        name: geerlingguy.nfs
+      vars:
+        nfs_exports: [ "/shared    *(rw,sync,no_root_squash)" ]
+      when: inventory_hostname == 'slurmctld'
+
+    - name: Setup nfs client
+      shell: sudo mount slurmctld:/shared /shared
+      when: inventory_hostname not in ['slurmctld', 'ldapserver']
+      tags:
+        - foo
+
+  handlers:
+    - name: restart ntp
+      service: name={{ ntp_package }} state=restarted
