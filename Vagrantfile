@@ -16,6 +16,11 @@ Vagrant.configure("2") do |config|
 
   config.vm.box_download_insecure = true #added by TSV for curl error
 
+  config.vagrant.plugins = {
+    "vagrant-vbguest" => {"version" => "0.31.0"},
+    "vagrant-timezone" => {"version" => "1.3.0"}
+  }
+
   if Vagrant.has_plugin?("vagrant-timezone")
    config.timezone.value = "America/Denver"
   end

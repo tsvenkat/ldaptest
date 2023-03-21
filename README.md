@@ -9,15 +9,9 @@ Vagrant - version 2.3.4
 VirtualBox - version 7.0
 ```
 
-### Configure
-```
-git clone git@github.com:\tsvenkat\ldaptest
-cd ldaptest
-vagrant plugin install vagrant-vbguest
-```
-
 ## To bring up the VMs 
 ```
+git clone git@github.com:/tsvenkat/ldaptest
 cd ldaptest
 vagrant up
 ```
