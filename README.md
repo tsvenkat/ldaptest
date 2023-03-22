@@ -54,6 +54,7 @@ slurmctld (and other nodes):
 ```
 
 ## Putting the vagrant environment to use
+```
 # the nodes slurmctld, login and slurmd all should have now been configured
 # with sssd to connect to the ldapserver node for auth, posix attributes and sudo
 
@@ -64,7 +65,7 @@ vagrant ssh login
 grep "Robert" /etc/passwd
 grep "Theon" /etc/passwd
 grep "oper" /etc/group
-
+```
 
 # Following should return results, as they should be from the openldap server
 getent passwd Robert
@@ -128,4 +129,4 @@ ssh Theon@login
 # sinfo should list that partition only for the user Theon and allow to submit jobs
 # Must not allow other users to use victor
 sinfo
-
+```
