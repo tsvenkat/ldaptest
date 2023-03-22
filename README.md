@@ -65,7 +65,6 @@ vagrant ssh login
 grep "Robert" /etc/passwd
 grep "Theon" /etc/passwd
 grep "oper" /etc/group
-```
 
 # Following should return results, as they should be from the openldap server
 getent passwd Robert
