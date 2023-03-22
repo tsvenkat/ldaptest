@@ -53,6 +53,23 @@ slurmctld (and other nodes):
   /etc/sshd/sshd_conf
 ```
 
+### SSH convenience from host
+If you rather like to ssh directly to the VMs than going through "vagrant ssh", you may want to update your host's ssh config file:
+
+```
+vagrant ssh-config >> ~/.ssh/config
+#(or)
+vagrant ssh-config ldapserver slurmctld slurmd login >> ~/.ssh/config
+
+#Then, can do:
+ssh login
+
+#For logging in as a different user than vagrant,
+#Note: You may want to set PasswordAuthentication to "yes" in the ssh config for this to work. 
+#      Vagrant sets it as no by default and uses the user vagrant
+ssh Robert@login
+```
+
 ## Putting the vagrant environment to use
 ```
 # the nodes slurmctld, login and slurmd all should have now been configured
