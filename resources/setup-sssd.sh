@@ -35,6 +35,10 @@ echo 'AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys'  >> /etc/ssh/sshd_c
 echo -n 'AuthorizedKeysCommandUser nobody' >> /etc/ssh/sshd_config
 systemctl restart sshd
 
+# copy script to auto generate ssh files for user to move around in the cluster
+# TODO: enable slurm pam adopt plugin
+cp /vagrant/resources/ssh-oscar.sh /etc/profile.d/
+
 # sssd troubleshooting tips:
 # sometimes it is helpful to run sssd in the foreground with debug logging enabled
 # first,

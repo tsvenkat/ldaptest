@@ -13,7 +13,8 @@ echo "192.168.33.17 slurmd" >> /etc/hosts
 
 # install packaged slurm, singularity
 export DEBIAN_FRONTEND=noninteractive
-apt-get update && apt install slurm-wlm munge -y
+apt-get install mysql-server libmysqlclient-dev -y
+apt-get update && apt install slurm-wlm munge slurmdbd -y
 apt-get install /vagrant/resources/singularity-ce_3.10.2-focal_amd64.deb -y
 
 # bring in config

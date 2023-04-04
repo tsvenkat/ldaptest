@@ -49,7 +49,7 @@ Vagrant.configure("2") do |config|
     server.vm.hostname = "ldapserver"
     server.vm.provision "shell", path: "resources/openldap.sh"
     # provision using ansible
-    provision_with_ansible server
+    #provision_with_ansible server
   end
 
   # setup a client with ldap tools installed
@@ -75,7 +75,7 @@ Vagrant.configure("2") do |config|
     ctld.vm.provision "shell", path: "resources/setup-sssd.sh"
     ctld.vm.provision "shell", path: "resources/setup-slurmctld.sh"
     # provision using ansible
-    provision_with_ansible ctld
+    #provision_with_ansible ctld
   end
 
   # setup Slurm login node
@@ -90,7 +90,7 @@ Vagrant.configure("2") do |config|
     login.vm.provision "shell", path: "resources/setup-sssd.sh"
     login.vm.provision "shell", path: "resources/setup-login-node.sh"
     # provision using ansible
-    provision_with_ansible login
+    #provision_with_ansible login
   end
 
   # setup Slurmd
@@ -105,7 +105,7 @@ Vagrant.configure("2") do |config|
     slurmd.vm.provision "shell", path: "resources/setup-sssd.sh"
     slurmd.vm.provision "shell", path: "resources/setup-slurmd.sh"
     # provision using ansible
-    provision_with_ansible slurmd
+    #provision_with_ansible slurmd
   end
 
 
