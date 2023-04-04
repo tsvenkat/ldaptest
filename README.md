@@ -4,9 +4,10 @@ A vagrant environment that runs a OpenLDAP server along with a sample of SLURM c
 ## Prerequisites
 ### Install
 ```
-ansible - version 2.6.12 (or later)
 Vagrant - version 2.3.4
 VirtualBox - version 7.0
+
+ansible - version 2.6.12 (or later) - optional
 ```
 
 ## To bring up the VMs 
