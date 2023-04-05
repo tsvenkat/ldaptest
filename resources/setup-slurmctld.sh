@@ -19,22 +19,21 @@ apt-get install /vagrant/resources/singularity-ce_3.10.2-focal_amd64.deb -y
 
 # bring in config
 cp /vagrant/resources/slurm.conf /etc/slurm-llnl/
+cp /vagrant/resources/slurmdbd.conf /etc/slurm-llnl/
 cp /vagrant/resources/cgroup.conf /etc/slurm-llnl/
 
 # set up munge with common, insecure key
 cp /vagrant/resources/munge.key /etc/munge/munge.key 
 systemctl restart munge
 
-# sssd config
-mkdir -p /etc/sssd
-cp /vagrant/resources/sssd.conf /etc/sssd/
-chmod -R 600 /etc/sssd/sssd.conf
-chown root:root /etc/sssd/sssd.conf
-pam-auth-update --enable mkhomedir
+# Create database
+/vagrant/resources/create-slurm-db.sh
 
 # start the services and set them to run at startup
 systemctl enable slurmctld
+systemctl enable slurmdbd
 systemctl start slurmctld
+systemctl start slurmdbd
 
 # check that partitions are up
 if sinfo | grep idle; then
